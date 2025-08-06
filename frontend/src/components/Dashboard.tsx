@@ -173,28 +173,30 @@ export function Dashboard({ user }: DashboardProps) {
       title: 'アクセス数',
       dataIndex: 'accessCount',
       key: 'accessCount',
-      width: 100,
+      width: 80,
       align: 'center',
       render: (count: number) => (
-        <Space>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
           <BarChartOutlined />
-          {count}
-        </Space>
+          <span>{count}</span>
+        </div>
       ),
     },
     {
       title: '作成日',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 120,
+      width: 100,
+      align: 'center',
       render: (date: string) => new Date(date).toLocaleDateString('ja-JP'),
     },
     {
       title: '操作',
       key: 'actions',
-      width: 120,
+      width: 80,
+      align: 'center',
       render: (_, record) => (
-        <Space>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
           <Button 
             type="text" 
             size="small" 
@@ -216,7 +218,7 @@ export function Dashboard({ user }: DashboardProps) {
               title="削除"
             />
           </Popconfirm>
-        </Space>
+        </div>
       ),
     },
   ];
@@ -226,10 +228,10 @@ export function Dashboard({ user }: DashboardProps) {
       title: '短縮URL',
       key: 'mobile',
       render: (_, record) => (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text code style={{ fontSize: '12px' }}>{record.slug}</Text>
-            <Space>
+        <div style={{ padding: '8px 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+            <Text code style={{ fontSize: '14px', fontWeight: 'bold' }}>{record.slug}</Text>
+            <div style={{ display: 'flex', gap: '4px' }}>
               <Button 
                 type="text" 
                 size="small" 
@@ -242,10 +244,17 @@ export function Dashboard({ user }: DashboardProps) {
                 icon={<CopyOutlined />}
                 onClick={() => copyToClipboard(record.shortUrl)}
               />
-            </Space>
+            </div>
           </div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-            アクセス: {record.accessCount}回 | {new Date(record.createdAt).toLocaleDateString('ja-JP')}
+          <div style={{ 
+            fontSize: '12px', 
+            color: '#666', 
+            display: 'flex', 
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <span>アクセス: {record.accessCount}回</span>
+            <span>{new Date(record.createdAt).toLocaleDateString('ja-JP')}</span>
           </div>
         </div>
       ),

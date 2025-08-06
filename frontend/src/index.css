@@ -8,7 +8,7 @@ body {
 }
 
 /* デスクトップ表示 */
-@media (min-width: 768px) {
+@media (min-width: 992px) {
   .desktop-table {
     display: block !important;
   }
@@ -17,12 +17,27 @@ body {
   }
 }
 
-/* モバイル表示 */
-@media (max-width: 767px) {
+/* タブレット・モバイル表示 */
+@media (max-width: 991px) {
   .desktop-table {
     display: none !important;
   }
   .mobile-table {
     display: block !important;
+  }
+}
+
+/* テーブル横スクロール対応 */
+.ant-table-wrapper {
+  overflow-x: auto;
+}
+
+/* モバイルでのボタン調整 */
+@media (max-width: 767px) {
+  .ant-btn {
+    padding: 4px 8px;
+  }
+  .ant-btn-sm {
+    padding: 2px 6px;
   }
 } 
