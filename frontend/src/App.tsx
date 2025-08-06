@@ -36,20 +36,14 @@ function App() {
       </Header>
       
       <Content style={{ 
-        padding: '24px',
+        padding: '0',
         overflow: 'auto'
       }}>
-        <div style={{ 
-          maxWidth: '1200px', 
-          margin: '0 auto',
-          width: '100%'
-        }}>
-          {isAuthenticated ? (
-            <Dashboard user={user!} />
-          ) : (
-            <LoginPage />
-          )}
-        </div>
+        {isAuthenticated ? (
+          <Dashboard user={user!} />
+        ) : (
+          <LoginPage />
+        )}
       </Content>
     </Layout>
   );

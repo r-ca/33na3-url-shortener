@@ -38,8 +38,8 @@ export function LoginPage() {
       display: 'flex', 
       justifyContent: 'center', 
       alignItems: 'center', 
-      minHeight: '70vh',
-      padding: '20px'
+      minHeight: 'calc(100vh - 64px)',
+      padding: '16px'
     }}>
       <Card 
         style={{ 

@@ -25,7 +25,8 @@ import {
   UserOutlined,
   LogoutOutlined,
   EditOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  EyeOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { User, UrlRecord, CreateUrlRequest } from '../types';
@@ -45,6 +46,7 @@ export function Dashboard({ user }: DashboardProps) {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUrl, setEditingUrl] = useState<UrlRecord | null>(null);
+  const [detailUrl, setDetailUrl] = useState<UrlRecord | null>(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -128,7 +130,7 @@ export function Dashboard({ user }: DashboardProps) {
     message.success('クリップボードにコピーしました');
   };
 
-  const columns: ColumnsType<UrlRecord> = [
+  const desktopColumns: ColumnsType<UrlRecord> = [
     {
       title: 'スラグ',
       dataIndex: 'slug',
@@ -219,6 +221,37 @@ export function Dashboard({ user }: DashboardProps) {
     },
   ];
 
+  const mobileColumns: ColumnsType<UrlRecord> = [
+    {
+      title: '短縮URL',
+      key: 'mobile',
+      render: (_, record) => (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text code style={{ fontSize: '12px' }}>{record.slug}</Text>
+            <Space>
+              <Button 
+                type="text" 
+                size="small" 
+                icon={<EyeOutlined />}
+                onClick={() => setDetailUrl(record)}
+              />
+              <Button 
+                type="text" 
+                size="small" 
+                icon={<CopyOutlined />}
+                onClick={() => copyToClipboard(record.shortUrl)}
+              />
+            </Space>
+          </div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+            アクセス: {record.accessCount}回 | {new Date(record.createdAt).toLocaleDateString('ja-JP')}
+          </div>
+        </div>
+      ),
+    },
+  ];
+
   const userMenuItems = [
     {
       key: 'profile',
@@ -252,21 +285,23 @@ export function Dashboard({ user }: DashboardProps) {
   const totalAccess = urls.reduce((sum, url) => sum + url.accessCount, 0);
 
   return (
-    <div>
+    <div style={{ padding: '16px' }}>
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        marginBottom: 24,
+        marginBottom: 16,
         flexWrap: 'wrap',
-        gap: '16px'
+        gap: '8px'
       }}>
-        <Title level={2} style={{ margin: 0 }}>URL管理 - {user.studentId}</Title>
+        <Title level={3} style={{ margin: 0, fontSize: '18px' }}>
+          {user.studentId}
+        </Title>
         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-          <Button type="text">
-            <Space>
+          <Button type="text" size="small">
+            <Space size="small">
               <Avatar src={user.picture} icon={<UserOutlined />} size="small" />
-              <span style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '12px' }}>
                 {user.name}
               </span>
             </Space>
@@ -274,15 +309,15 @@ export function Dashboard({ user }: DashboardProps) {
         </Dropdown>
       </div>
 
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12}>
-          <Card>
-            <Statistic title="作成した短縮URL" value={urls.length} suffix="個" />
+      <Row gutter={[8, 8]} style={{ marginBottom: 16 }}>
+        <Col xs={12} sm={12}>
+          <Card size="small">
+            <Statistic title="作成" value={urls.length} suffix="個" />
           </Card>
         </Col>
-        <Col xs={24} sm={12}>
-          <Card>
-            <Statistic title="総アクセス数" value={totalAccess} suffix="回" />
+        <Col xs={12} sm={12}>
+          <Card size="small">
+            <Statistic title="アクセス" value={totalAccess} suffix="回" />
           </Card>
         </Col>
       </Row>
@@ -292,22 +327,40 @@ export function Dashboard({ user }: DashboardProps) {
           type="primary" 
           icon={<PlusOutlined />}
           onClick={() => setIsModalOpen(true)}
+          block
         >
-          新しい短縮URLを作成
+          新規作成
         </Button>
       </div>
-      <Table
-        columns={columns}
-        dataSource={urls}
-        rowKey="slug"
-        loading={loading}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total) => `全 ${total} 件`,
-        }}
-      />
+      <div className="desktop-table" style={{ display: 'none' }}>
+        <Table
+          columns={desktopColumns}
+          dataSource={urls}
+          rowKey="slug"
+          loading={loading}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `全 ${total} 件`,
+          }}
+        />
+      </div>
+      
+      <div className="mobile-table" style={{ display: 'block' }}>
+        <Table
+          columns={mobileColumns}
+          dataSource={urls}
+          rowKey="slug"
+          loading={loading}
+          pagination={{
+            pageSize: 10,
+            showTotal: (total) => `全 ${total} 件`,
+            simple: true,
+          }}
+          showHeader={false}
+        />
+      </div>
 
       <Modal
         title={editingUrl ? "短縮URLを編集" : "新しい短縮URLを作成"}
@@ -397,8 +450,82 @@ export function Dashboard({ user }: DashboardProps) {
               </Button>
             </Space>
           </Form.Item>
-        </Form>
-      </Modal>
-    </div>
-  );
-} 
+                  </Form>
+        </Modal>
+
+        <Modal
+          title="短縮URL詳細"
+          open={!!detailUrl}
+          onCancel={() => setDetailUrl(null)}
+          footer={[
+            <Button key="edit" type="primary" onClick={() => {
+              setDetailUrl(null);
+              openEditModal(detailUrl!);
+            }}>
+              編集
+            </Button>,
+            <Popconfirm
+              key="delete"
+              title="この短縮URLを削除しますか？"
+              onConfirm={() => {
+                handleDeleteUrl(detailUrl!.slug);
+                setDetailUrl(null);
+              }}
+              okText="削除"
+              cancelText="キャンセル"
+            >
+              <Button danger>削除</Button>
+            </Popconfirm>,
+            <Button key="close" onClick={() => setDetailUrl(null)}>
+              閉じる
+            </Button>
+          ]}
+        >
+          {detailUrl && (
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              <div>
+                <Text strong>スラグ:</Text>
+                <div><Text code>{detailUrl.slug}</Text></div>
+              </div>
+              <div>
+                <Text strong>短縮URL:</Text>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <a href={detailUrl.shortUrl} target="_blank" rel="noopener noreferrer">
+                    {detailUrl.shortUrl}
+                  </a>
+                  <Button 
+                    type="text" 
+                    size="small" 
+                    icon={<CopyOutlined />}
+                    onClick={() => copyToClipboard(detailUrl.shortUrl)}
+                  />
+                </div>
+              </div>
+              <div>
+                <Text strong>元のURL:</Text>
+                <div>
+                  <a href={detailUrl.originalUrl} target="_blank" rel="noopener noreferrer">
+                    {detailUrl.originalUrl}
+                  </a>
+                </div>
+              </div>
+              <div>
+                <Text strong>アクセス数:</Text>
+                <div>{detailUrl.accessCount}回</div>
+              </div>
+              <div>
+                <Text strong>作成日:</Text>
+                <div>{new Date(detailUrl.createdAt).toLocaleString('ja-JP')}</div>
+              </div>
+              {detailUrl.description && (
+                <div>
+                  <Text strong>説明:</Text>
+                  <div>{detailUrl.description}</div>
+                </div>
+              )}
+            </Space>
+          )}
+        </Modal>
+      </div>
+    );
+  } 
