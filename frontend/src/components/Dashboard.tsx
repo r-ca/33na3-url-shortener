@@ -47,7 +47,8 @@ export function Dashboard({ user }: DashboardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUrl, setEditingUrl] = useState<UrlRecord | null>(null);
   const [detailUrl, setDetailUrl] = useState<UrlRecord | null>(null);
-  const [tableKey, setTableKey] = useState(0); // テーブル再レンダリング用
+  const [tableKey, setTableKey] = useState(0);
+  const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -59,7 +60,6 @@ export function Dashboard({ user }: DashboardProps) {
     try {
       const response = await api.getUrls();
       setUrls(response.urls);
-      // テーブルの強制再レンダリング
       setTableKey(prev => prev + 1);
     } catch (error) {
       if (error instanceof ApiError) {
@@ -75,9 +75,7 @@ export function Dashboard({ user }: DashboardProps) {
   const handleCreateUrl = async (values: CreateUrlRequest) => {
     try {
       const newUrl = await api.createUrl(values);
-      // 状態を確実に更新
       setUrls(prevUrls => [newUrl, ...prevUrls]);
-      // テーブルの強制再レンダリング
       setTableKey(prev => prev + 1);
       setIsModalOpen(false);
       form.resetFields();
@@ -96,9 +94,7 @@ export function Dashboard({ user }: DashboardProps) {
     
     try {
       const updatedUrl = await api.updateUrl(editingUrl.slug, values);
-      // 状態を確実に更新
       setUrls(prevUrls => prevUrls.map(url => url.slug === editingUrl.slug ? updatedUrl : url));
-      // テーブルの強制再レンダリング
       setTableKey(prev => prev + 1);
       setEditingUrl(null);
       form.resetFields();
@@ -121,28 +117,46 @@ export function Dashboard({ user }: DashboardProps) {
   };
 
   const handleDeleteUrl = async (slug: string) => {
+    // 既に削除中の場合は処理しない
+    if (deletingSlug === slug) {
+      return;
+    }
+    
+    setDeletingSlug(slug);
     try {
       await api.deleteUrl(slug);
-      // 状態を確実に更新
+      
+      // 削除成功後、まず楽観的更新を実行
       setUrls(prevUrls => prevUrls.filter(url => url.slug !== slug));
-      // テーブルの強制再レンダリング
       setTableKey(prev => prev + 1);
-      // 詳細モーダルが開いている場合は閉じる
+      
+      // モーダルが開いている場合は閉じる
       if (detailUrl?.slug === slug) {
         setDetailUrl(null);
       }
-      // 編集モーダルが開いている場合は閉じる
       if (editingUrl?.slug === slug) {
         setEditingUrl(null);
         form.resetFields();
       }
+      
       message.success('短縮URLを削除しました');
+      
+      // 削除成功後、サーバーから最新データを取得して確実に同期
+      try {
+        const response = await api.getUrls();
+        setUrls(response.urls);
+        setTableKey(prev => prev + 1);
+      } catch (syncError) {
+        console.warn('削除後の同期に失敗しましたが、削除は成功しています:', syncError);
+      }
     } catch (error) {
       if (error instanceof ApiError) {
         message.error(error.message);
       } else {
         message.error('短縮URLの削除に失敗しました');
       }
+    } finally {
+      setDeletingSlug(null);
     }
   };
 
@@ -192,7 +206,7 @@ export function Dashboard({ user }: DashboardProps) {
             size="small" 
             icon={<CopyOutlined />}
             onClick={() => copyToClipboard(shortUrl)}
-            style={{ flexShrink: 0 }}
+            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           />
         </div>
       ),
@@ -253,6 +267,7 @@ export function Dashboard({ user }: DashboardProps) {
             icon={<EditOutlined />}
             onClick={() => openEditModal(record)}
             title="編集"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           />
           <Popconfirm
             title="この短縮URLを削除しますか？"
@@ -266,6 +281,8 @@ export function Dashboard({ user }: DashboardProps) {
               danger 
               icon={<DeleteOutlined />}
               title="削除"
+              loading={deletingSlug === record.slug}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             />
           </Popconfirm>
         </div>
@@ -287,12 +304,14 @@ export function Dashboard({ user }: DashboardProps) {
                 size="small" 
                 icon={<EyeOutlined />}
                 onClick={() => setDetailUrl(record)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               />
               <Button 
                 type="text" 
                 size="small" 
                 icon={<CopyOutlined />}
                 onClick={() => copyToClipboard(record.shortUrl)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               />
             </div>
           </div>
@@ -392,6 +411,7 @@ export function Dashboard({ user }: DashboardProps) {
             icon={<ReloadOutlined />}
             onClick={loadUrls}
             loading={loading}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             更新
           </Button>
@@ -399,6 +419,7 @@ export function Dashboard({ user }: DashboardProps) {
             type="primary" 
             icon={<PlusOutlined />}
             onClick={() => setIsModalOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             新規作成
           </Button>
@@ -406,7 +427,7 @@ export function Dashboard({ user }: DashboardProps) {
       </div>
       <div className="desktop-table" style={{ display: 'none' }}>
         <Table
-          key={tableKey}
+          key={`desktop-${tableKey}`}
           columns={desktopColumns}
           dataSource={urls}
           rowKey="slug"
@@ -423,7 +444,7 @@ export function Dashboard({ user }: DashboardProps) {
       
       <div className="mobile-table" style={{ display: 'block' }}>
         <Table
-          key={tableKey}
+          key={`mobile-${tableKey}`}
           columns={mobileColumns}
           dataSource={urls}
           rowKey="slug"
@@ -446,7 +467,6 @@ export function Dashboard({ user }: DashboardProps) {
           form.resetFields();
         }}
         afterClose={() => {
-          // モーダルが完全に閉じられた後に状態をリセット
           setIsModalOpen(false);
           setEditingUrl(null);
           form.resetFields();
@@ -494,6 +514,7 @@ export function Dashboard({ user }: DashboardProps) {
                       form.setFieldValue('slug', randomSlug);
                     }}
                     title="ランダム生成"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   />
                 }
               />
@@ -529,17 +550,16 @@ export function Dashboard({ user }: DashboardProps) {
               }}>
                 キャンセル
               </Button>
-            </Space>
+                        </Space>
           </Form.Item>
-                  </Form>
-        </Modal>
+        </Form>
+      </Modal>
 
         <Modal
           title="短縮URL詳細"
           open={!!detailUrl}
           onCancel={() => setDetailUrl(null)}
           afterClose={() => {
-            // モーダルが完全に閉じられた後に状態をリセット
             setDetailUrl(null);
           }}
           footer={[
@@ -558,7 +578,12 @@ export function Dashboard({ user }: DashboardProps) {
               okText="削除"
               cancelText="キャンセル"
             >
-              <Button danger>削除</Button>
+              <Button 
+                danger
+                loading={deletingSlug === detailUrl?.slug}
+              >
+                削除
+              </Button>
             </Popconfirm>,
             <Button key="close" onClick={() => setDetailUrl(null)}>
               閉じる
@@ -582,6 +607,7 @@ export function Dashboard({ user }: DashboardProps) {
                     size="small" 
                     icon={<CopyOutlined />}
                     onClick={() => copyToClipboard(detailUrl.shortUrl)}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   />
                 </div>
               </div>

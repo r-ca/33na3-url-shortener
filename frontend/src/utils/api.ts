@@ -32,6 +32,17 @@ async function apiRequest<T>(
     throw new ApiError(response.status, errorData);
   }
 
+  // 204 No Content の場合はJSONパースしない
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  // レスポンスボディが空の場合もJSONパースしない
+  const contentLength = response.headers.get('content-length');
+  if (contentLength === '0') {
+    return undefined as T;
+  }
+
   return response.json();
 }
 
