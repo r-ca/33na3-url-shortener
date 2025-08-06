@@ -53,9 +53,6 @@ export function LoginPage() {
             <Title level={2} style={{ marginBottom: '8px' }}>
               33na3 URL Shortener
             </Title>
-            <Text type="secondary">
-              学内アカウントでログインしてください
-            </Text>
           </div>
 
           <div 
