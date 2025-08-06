@@ -109,11 +109,6 @@ export function Dashboard({ user }: DashboardProps) {
     });
   };
 
-  const generateSlug = () => {
-    const randomSlug = generateSimpleSlug(6);
-    form.setFieldValue('slug', randomSlug);
-  };
-
   const handleDeleteUrl = async (slug: string) => {
     try {
       await api.deleteUrl(slug);
