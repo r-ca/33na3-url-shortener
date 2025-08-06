@@ -51,6 +51,13 @@ export const api = {
   getUrl: (slug: string): Promise<UrlRecord> =>
     apiRequest(`/urls/${slug}`),
 
+  // URL更新
+  updateUrl: (slug: string, data: { originalUrl?: string; description?: string }): Promise<UrlRecord> =>
+    apiRequest(`/urls/${slug}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
   // URL削除
   deleteUrl: (slug: string): Promise<void> =>
     apiRequest(`/urls/${slug}`, {

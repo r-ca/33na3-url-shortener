@@ -23,7 +23,8 @@ import {
   LinkOutlined,
   BarChartOutlined,
   UserOutlined,
-  LogoutOutlined
+  LogoutOutlined,
+  EditOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { User, UrlRecord, CreateUrlRequest } from '../types';
@@ -41,6 +42,7 @@ export function Dashboard({ user }: DashboardProps) {
   const [urls, setUrls] = useState<UrlRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingUrl, setEditingUrl] = useState<UrlRecord | null>(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -77,6 +79,32 @@ export function Dashboard({ user }: DashboardProps) {
         message.error('短縮URLの作成に失敗しました');
       }
     }
+  };
+
+  const handleUpdateUrl = async (values: { originalUrl: string; description?: string }) => {
+    if (!editingUrl) return;
+    
+    try {
+      const updatedUrl = await api.updateUrl(editingUrl.slug, values);
+      setUrls(urls.map(url => url.slug === editingUrl.slug ? updatedUrl : url));
+      setEditingUrl(null);
+      form.resetFields();
+      message.success('短縮URLを更新しました');
+    } catch (error) {
+      if (error instanceof ApiError) {
+        message.error(error.message);
+      } else {
+        message.error('短縮URLの更新に失敗しました');
+      }
+    }
+  };
+
+  const openEditModal = (url: UrlRecord) => {
+    setEditingUrl(url);
+    form.setFieldsValue({
+      originalUrl: url.originalUrl,
+      description: url.description,
+    });
   };
 
   const handleDeleteUrl = async (slug: string) => {
@@ -160,21 +188,31 @@ export function Dashboard({ user }: DashboardProps) {
     {
       title: '操作',
       key: 'actions',
-      width: 80,
+      width: 120,
       render: (_, record) => (
-        <Popconfirm
-          title="この短縮URLを削除しますか？"
-          onConfirm={() => handleDeleteUrl(record.slug)}
-          okText="削除"
-          cancelText="キャンセル"
-        >
+        <Space>
           <Button 
             type="text" 
             size="small" 
-            danger 
-            icon={<DeleteOutlined />}
+            icon={<EditOutlined />}
+            onClick={() => openEditModal(record)}
+            title="編集"
           />
-        </Popconfirm>
+          <Popconfirm
+            title="この短縮URLを削除しますか？"
+            onConfirm={() => handleDeleteUrl(record.slug)}
+            okText="削除"
+            cancelText="キャンセル"
+          >
+            <Button 
+              type="text" 
+              size="small" 
+              danger 
+              icon={<DeleteOutlined />}
+              title="削除"
+            />
+          </Popconfirm>
+        </Space>
       ),
     },
   ];
@@ -212,20 +250,24 @@ export function Dashboard({ user }: DashboardProps) {
   const totalAccess = urls.reduce((sum, url) => sum + url.accessCount, 0);
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+    <div>
       {/* ヘッダー */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        marginBottom: 24 
+        marginBottom: 24,
+        flexWrap: 'wrap',
+        gap: '16px'
       }}>
-        <Title level={2}>URL管理 - {user.studentId}</Title>
+        <Title level={2} style={{ margin: 0 }}>URL管理 - {user.studentId}</Title>
         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
           <Button type="text">
             <Space>
-              <Avatar src={user.picture} icon={<UserOutlined />} />
-              {user.name}
+              <Avatar src={user.picture} icon={<UserOutlined />} size="small" />
+              <span style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user.name}
+              </span>
             </Space>
           </Button>
         </Dropdown>
@@ -233,22 +275,14 @@ export function Dashboard({ user }: DashboardProps) {
 
       {/* 統計カード */}
       <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={8}>
+        <Col xs={24} sm={12}>
           <Card>
-            <Statistic title="作成した短縮URL" value={urls.length} />
+            <Statistic title="作成した短縮URL" value={urls.length} suffix="個" />
           </Card>
         </Col>
-        <Col span={8}>
+        <Col xs={24} sm={12}>
           <Card>
-            <Statistic title="総アクセス数" value={totalAccess} />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic 
-              title="平均アクセス数" 
-              value={urls.length > 0 ? (totalAccess / urls.length).toFixed(1) : 0} 
-            />
+            <Statistic title="総アクセス数" value={totalAccess} suffix="回" />
           </Card>
         </Col>
       </Row>
@@ -278,12 +312,13 @@ export function Dashboard({ user }: DashboardProps) {
         }}
       />
 
-      {/* 作成モーダル */}
+      {/* 作成・編集モーダル */}
       <Modal
-        title="新しい短縮URLを作成"
-        open={isModalOpen}
+        title={editingUrl ? "短縮URLを編集" : "新しい短縮URLを作成"}
+        open={isModalOpen || !!editingUrl}
         onCancel={() => {
           setIsModalOpen(false);
+          setEditingUrl(null);
           form.resetFields();
         }}
         footer={null}
@@ -291,7 +326,7 @@ export function Dashboard({ user }: DashboardProps) {
         <Form
           form={form}
           layout="vertical"
-          onFinish={handleCreateUrl}
+          onFinish={editingUrl ? handleUpdateUrl : handleCreateUrl}
         >
           <Form.Item
             name="originalUrl"
@@ -304,22 +339,34 @@ export function Dashboard({ user }: DashboardProps) {
             <Input placeholder="https://example.com" />
           </Form.Item>
 
-          <Form.Item
-            name="slug"
-            label="スラグ（短縮URLの一部）"
-            rules={[
-              { required: true, message: 'スラグを入力してください' },
-              { 
-                pattern: /^[a-zA-Z0-9_-]+$/, 
-                message: '英数字、ハイフン、アンダースコアのみ使用可能です' 
-              },
-            ]}
-          >
-            <Input 
-              placeholder="my-link" 
-              addonBefore={`url.33na3.work/${user.studentId}/`}
-            />
-          </Form.Item>
+          {!editingUrl && (
+            <Form.Item
+              name="slug"
+              label="スラグ（短縮URLの一部）"
+              rules={[
+                { required: true, message: 'スラグを入力してください' },
+                { 
+                  pattern: /^[a-zA-Z0-9_-]+$/, 
+                  message: '英数字、ハイフン、アンダースコアのみ使用可能です' 
+                },
+              ]}
+            >
+              <Input 
+                placeholder="my-link" 
+                addonBefore={`url.33na3.work/${user.studentId}/`}
+              />
+            </Form.Item>
+          )}
+
+          {editingUrl && (
+            <Form.Item label="スラグ（変更不可）">
+              <Input 
+                value={editingUrl.slug}
+                disabled
+                addonBefore={`url.33na3.work/${user.studentId}/`}
+              />
+            </Form.Item>
+          )}
 
           <Form.Item
             name="description"
@@ -331,10 +378,11 @@ export function Dashboard({ user }: DashboardProps) {
           <Form.Item>
             <Space>
               <Button type="primary" htmlType="submit">
-                作成
+                {editingUrl ? '更新' : '作成'}
               </Button>
               <Button onClick={() => {
                 setIsModalOpen(false);
+                setEditingUrl(null);
                 form.resetFields();
               }}>
                 キャンセル

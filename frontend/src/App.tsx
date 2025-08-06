@@ -21,18 +21,35 @@ function App() {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ background: '#fff', borderBottom: '1px solid #f0f0f0' }}>
-        <Title level={3} style={{ margin: 0, lineHeight: '64px' }}>
-          33na3 URL Shortener
+      <Header style={{ 
+        background: '#fff', 
+        borderBottom: '1px solid #f0f0f0',
+        padding: '0 24px'
+      }}>
+        <Title level={3} style={{ 
+          margin: 0, 
+          lineHeight: '64px',
+          color: '#1f2937'
+        }}>
+          🔗 33na3 URL Shortener
         </Title>
       </Header>
       
-      <Content style={{ padding: '24px' }}>
-        {isAuthenticated ? (
-          <Dashboard user={user!} />
-        ) : (
-          <LoginPage />
-        )}
+      <Content style={{ 
+        padding: '24px',
+        overflow: 'auto'
+      }}>
+        <div style={{ 
+          maxWidth: '1200px', 
+          margin: '0 auto',
+          width: '100%'
+        }}>
+          {isAuthenticated ? (
+            <Dashboard user={user!} />
+          ) : (
+            <LoginPage />
+          )}
+        </div>
       </Content>
     </Layout>
   );

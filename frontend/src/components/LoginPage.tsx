@@ -1,24 +1,37 @@
 import { useEffect, useRef } from 'react';
-import { Card, Typography, Space, Button } from 'antd';
-import { GoogleOutlined } from '@ant-design/icons';
-import { useAuth } from '../hooks/useAuth';
+import { Card, Typography, Space } from 'antd';
 
 const { Title, Text } = Typography;
 
 export function LoginPage() {
-  const { signIn } = useAuth();
   const googleButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Google Sign-In ボタンをレンダリング
-    if (window.google && googleButtonRef.current) {
-      window.google.accounts.id.renderButton(googleButtonRef.current, {
-        theme: 'outline',
-        size: 'large',
-        text: 'signin_with',
-        shape: 'rectangular',
-        width: '300',
-      });
+    const initializeGoogleButton = () => {
+      if (window.google && googleButtonRef.current) {
+        window.google.accounts.id.renderButton(googleButtonRef.current, {
+          theme: 'outline',
+          size: 'large',
+          text: 'signin_with',
+          shape: 'rectangular',
+          width: '320',
+        });
+      }
+    };
+
+    // Google SDKの読み込み待ち
+    if (window.google) {
+      initializeGoogleButton();
+    } else {
+      const checkGoogle = setInterval(() => {
+        if (window.google) {
+          initializeGoogleButton();
+          clearInterval(checkGoogle);
+        }
+      }, 100);
+      
+      // 10秒でタイムアウト
+      setTimeout(() => clearInterval(checkGoogle), 10000);
     }
   }, []);
 
@@ -27,32 +40,39 @@ export function LoginPage() {
       display: 'flex', 
       justifyContent: 'center', 
       alignItems: 'center', 
-      minHeight: 'calc(100vh - 112px)' 
+      minHeight: '70vh',
+      padding: '20px'
     }}>
-      <Card style={{ width: 400, textAlign: 'center' }}>
+      <Card 
+        style={{ 
+          width: '100%',
+          maxWidth: '400px', 
+          textAlign: 'center'
+        }}
+      >
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div>
-            <Title level={2}>ログイン</Title>
+            <Title level={2} style={{ marginBottom: '8px' }}>
+              🔗 33na3 URL Shortener
+            </Title>
             <Text type="secondary">
-              学内Google Workspaceアカウントでログインしてください
+              学内アカウントでログインしてください
             </Text>
           </div>
 
-          <div ref={googleButtonRef} style={{ display: 'flex', justifyContent: 'center' }} />
+          <div 
+            ref={googleButtonRef} 
+            id="google-signin-button"
+            style={{ 
+              display: 'flex', 
+              justifyContent: 'center',
+              minHeight: '44px',
+              alignItems: 'center'
+            }} 
+          />
           
-          {/* フォールバック用のボタン */}
-          <Button 
-            type="primary" 
-            icon={<GoogleOutlined />} 
-            size="large"
-            onClick={signIn}
-            style={{ width: '100%' }}
-          >
-            Googleでサインイン
-          </Button>
-
           <Text type="secondary" style={{ fontSize: '12px' }}>
-            ※ 学内ドメインのアカウントのみ利用可能です
+            学内ドメインのアカウントのみ利用可能
           </Text>
         </Space>
       </Card>

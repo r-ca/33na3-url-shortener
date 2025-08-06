@@ -42,18 +42,35 @@ export function useAuth() {
     window.google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
       callback: handleCredentialResponse,
+      auto_select: false,
+      cancel_on_tap_outside: false,
     });
   };
 
   const handleCredentialResponse = (response: CredentialResponse) => {
     try {
-      // JWT payloadをデコード（簡易版）
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      // JWT形式の検証
+      const parts = response.credential.split('.');
+      if (parts.length !== 3) {
+        throw new Error('Invalid JWT format');
+      }
+
+      // Base64URLデコード（JWT用）
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64.padEnd((base64.length + 3) & ~3, '=');
+      
+      const payload = JSON.parse(atob(padded));
+      
+      // 必要なフィールドの検証
+      if (!payload.email || !payload.name) {
+        throw new Error('Required user data missing from token');
+      }
       
       const userData: User = {
         email: payload.email,
-        name: payload.name,
-        picture: payload.picture,
+        name: payload.name || payload.email.split('@')[0], // 名前がない場合は学籍番号を使用
+        picture: payload.picture || '',
         studentId: payload.email.split('@')[0], // メールアドレスから学籍番号を抽出
       };
 
@@ -61,14 +78,12 @@ export function useAuth() {
       localStorage.setItem('idToken', response.credential);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
+      
+      console.log('Authentication successful:', userData.email);
     } catch (error) {
       console.error('Failed to process credential:', error);
-    }
-  };
-
-  const signIn = () => {
-    if (window.google) {
-      window.google.accounts.id.prompt();
+      // エラーメッセージをユーザーに表示
+      alert('認証に失敗しました。もう一度お試しください。');
     }
   };
 
@@ -81,7 +96,6 @@ export function useAuth() {
   return {
     user,
     loading,
-    signIn,
     signOut,
     isAuthenticated: !!user,
   };
