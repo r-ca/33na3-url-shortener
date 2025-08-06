@@ -1,5 +1,5 @@
 {
-  "name": "cloudflare-workers-openapi",
+  "name": "33na3-url-shortener",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -11,6 +11,7 @@
   "dependencies": {
     "chanfana": "^2.6.3",
     "hono": "^4.6.20",
+    "jose": "^5.10.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
