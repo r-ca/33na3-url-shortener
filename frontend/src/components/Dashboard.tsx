@@ -57,6 +57,10 @@ export function Dashboard({ user }: DashboardProps) {
     loadUrls();
   }, []);
 
+  // -------------------------
+  // Data fetching handlers
+  // -------------------------
+
   const loadUrls = async () => {
     setLoading(true);
     try {
@@ -64,7 +68,6 @@ export function Dashboard({ user }: DashboardProps) {
       setUrls(response.urls);
       setTableKey(prev => prev + 1);
     } catch (error) {
-      console.error('URL一覧の取得エラー:', error);
       if (error instanceof ApiError) {
         if (error.isAuthError()) {
           message.error(`${error.getUserMessage()} ページを再読み込みしてください。`);
@@ -93,7 +96,6 @@ export function Dashboard({ user }: DashboardProps) {
       form.resetFields();
       message.success('短縮URLを作成しました');
     } catch (error) {
-      console.error('URL作成エラー:', error);
       if (error instanceof ApiError) {
         const userMessage = error.getUserMessage();
         
@@ -150,7 +152,6 @@ export function Dashboard({ user }: DashboardProps) {
       form.resetFields();
       message.success('短縮URLを更新しました');
     } catch (error) {
-      console.error('URL更新エラー:', error);
       if (error instanceof ApiError) {
         const userMessage = error.getUserMessage();
         
@@ -224,10 +225,9 @@ export function Dashboard({ user }: DashboardProps) {
         setUrls(response.urls);
         setTableKey(prev => prev + 1);
       } catch (syncError) {
-        console.warn('削除後の同期に失敗しましたが、削除は成功しています:', syncError);
+        // 削除後の同期に失敗しましたが、削除は成功しています: syncError;
       }
     } catch (error) {
-      console.error('URL削除エラー:', error);
       if (error instanceof ApiError) {
         const userMessage = error.getUserMessage();
         
@@ -295,14 +295,7 @@ export function Dashboard({ user }: DashboardProps) {
             size="small" 
             icon={<CopyOutlined />}
             onClick={() => copyToClipboard(shortUrl)}
-            style={{ 
-              flexShrink: 0, 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              width: '24px',
-              height: '24px'
-            }}
+            style={{ flexShrink: 0 }}
           />
         </div>
       ),
@@ -356,20 +349,13 @@ export function Dashboard({ user }: DashboardProps) {
       width: 100,
       align: 'center',
       render: (_, record) => (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
+        <Space size="small">
           <Button 
             type="text" 
             size="small" 
             icon={<EditOutlined />}
             onClick={() => openEditModal(record)}
             title="編集"
-            style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              width: '24px',
-              height: '24px'
-            }}
           />
           <Popconfirm
             title="この短縮URLを削除しますか？"
@@ -384,16 +370,9 @@ export function Dashboard({ user }: DashboardProps) {
               icon={<DeleteOutlined />}
               title="削除"
               loading={deletingSlug === record.slug}
-              style={{ 
-                display: 'inline-flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                width: '24px',
-                height: '24px'
-              }}
             />
           </Popconfirm>
-        </div>
+        </Space>
       ),
     },
   ];
@@ -406,34 +385,20 @@ export function Dashboard({ user }: DashboardProps) {
         <div style={{ padding: '8px 0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <Text code style={{ fontSize: '14px', fontWeight: 'bold' }}>{record.slug}</Text>
-            <div style={{ display: 'flex', gap: '4px' }}>
+            <Space size="small">
               <Button 
                 type="text" 
                 size="small" 
                 icon={<EyeOutlined />}
                 onClick={() => setDetailUrl(record)}
-                style={{ 
-                  display: 'inline-flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  width: '24px',
-                  height: '24px'
-                }}
               />
               <Button 
                 type="text" 
                 size="small" 
                 icon={<CopyOutlined />}
                 onClick={() => copyToClipboard(record.shortUrl)}
-                style={{ 
-                  display: 'inline-flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  width: '24px',
-                  height: '24px'
-                }}
               />
-            </div>
+            </Space>
           </div>
           <div style={{ 
             fontSize: '12px', 
@@ -531,12 +496,6 @@ export function Dashboard({ user }: DashboardProps) {
             icon={<ReloadOutlined />}
             onClick={loadUrls}
             loading={loading}
-            style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              gap: '6px'
-            }}
           >
             更新
           </Button>
@@ -544,12 +503,6 @@ export function Dashboard({ user }: DashboardProps) {
             type="primary" 
             icon={<PlusOutlined />}
             onClick={() => setIsModalOpen(true)}
-            style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              gap: '6px'
-            }}
           >
             新規作成
           </Button>
@@ -613,7 +566,6 @@ export function Dashboard({ user }: DashboardProps) {
             label="元のURL"
             rules={[
               { required: true, message: 'URLを入力してください' },
-              { type: 'url', message: '有効なURLを入力してください' },
               {
                 validator: (_, value) => {
                   if (!value) return Promise.resolve();
@@ -660,13 +612,6 @@ export function Dashboard({ user }: DashboardProps) {
                       form.setFieldValue('slug', randomSlug);
                     }}
                     title="ランダム生成"
-                    style={{ 
-                      display: 'inline-flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      width: '24px',
-                      height: '24px'
-                    }}
                   />
                 }
               />
@@ -690,7 +635,7 @@ export function Dashboard({ user }: DashboardProps) {
             <Input.TextArea rows={3} placeholder="この短縮URLの説明" />
           </Form.Item>
 
-                    <Form.Item>
+                    <Form.Item style={{ marginBottom: 0 }}>
             <Space>
               <Button 
                 type="primary" 
@@ -766,13 +711,6 @@ export function Dashboard({ user }: DashboardProps) {
                     size="small" 
                     icon={<CopyOutlined />}
                     onClick={() => copyToClipboard(detailUrl.shortUrl)}
-                    style={{ 
-                      display: 'inline-flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      width: '24px',
-                      height: '24px'
-                    }}
                   />
                 </div>
               </div>
