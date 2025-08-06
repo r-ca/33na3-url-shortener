@@ -377,21 +377,21 @@ export function Dashboard({ user }: DashboardProps) {
         </Col>
       </Row>
 
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
         <Space>
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />}
-            onClick={() => setIsModalOpen(true)}
-          >
-            新規作成
-          </Button>
           <Button 
             icon={<ReloadOutlined />}
             onClick={loadUrls}
             loading={loading}
           >
             更新
+          </Button>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />}
+            onClick={() => setIsModalOpen(true)}
+          >
+            新規作成
           </Button>
         </Space>
       </div>
