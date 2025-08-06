@@ -4,17 +4,17 @@ import { ErrorResponse, type UrlRecord, type AppContext } from "../types";
 import { verifyGoogleIdToken, extractTokenFromHeader, generateKvKey } from "../utils/auth";
 
 export class UrlDelete extends OpenAPIRoute {
-  schema = {
+	schema = {
     tags: ["URLs"],
     summary: "短縮URLを削除",
     description: "指定されたスラグの短縮URLを削除します。認証が必要です。",
     security: [{ BearerAuth: [] }],
-    request: {
-      params: z.object({
+		request: {
+			params: z.object({
         slug: z.string().min(1).describe("短縮URLのスラグ"),
-      }),
-    },
-    responses: {
+			}),
+		},
+		responses: {
       "204": {
         description: "削除成功",
       },
@@ -36,16 +36,16 @@ export class UrlDelete extends OpenAPIRoute {
       },
       "404": {
         description: "URLが見つからない",
-        content: {
-          "application/json": {
+				content: {
+					"application/json": {
             schema: ErrorResponse,
-          },
-        },
-      },
-    },
-  };
+					},
+				},
+			},
+		},
+	};
 
-  async handle(c: AppContext) {
+	async handle(c: AppContext) {
     try {
       // 認証
       const authHeader = c.req.header("Authorization");
@@ -53,7 +53,7 @@ export class UrlDelete extends OpenAPIRoute {
       const user = await verifyGoogleIdToken(idToken, c.env.GOOGLE_CLIENT_ID);
 
       // パラメータ取得
-      const data = await this.getValidatedData<typeof this.schema>();
+		const data = await this.getValidatedData<typeof this.schema>();
       const { slug } = data.params;
 
       // URLレコード取得
@@ -96,5 +96,5 @@ export class UrlDelete extends OpenAPIRoute {
         500
       );
     }
-  }
+	}
 }

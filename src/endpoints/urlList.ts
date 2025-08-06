@@ -4,23 +4,23 @@ import { UrlResponse, ErrorResponse, type UrlRecord, type AppContext } from "../
 import { verifyGoogleIdToken, extractTokenFromHeader, generateUserPrefix } from "../utils/auth";
 
 export class UrlList extends OpenAPIRoute {
-  schema = {
+	schema = {
     tags: ["URLs"],
     summary: "短縮URL一覧を取得",
     description: "認証ユーザーの短縮URL一覧を取得します。",
     security: [{ BearerAuth: [] }],
-    responses: {
-      "200": {
+		responses: {
+			"200": {
         description: "短縮URL一覧取得成功",
-        content: {
-          "application/json": {
-            schema: z.object({
+				content: {
+					"application/json": {
+						schema: z.object({
               urls: z.array(UrlResponse),
               total: z.number(),
-            }),
-          },
-        },
-      },
+						}),
+					},
+				},
+			},
       "401": {
         description: "認証エラー",
         content: {
@@ -29,10 +29,10 @@ export class UrlList extends OpenAPIRoute {
           },
         },
       },
-    },
-  };
+		},
+	};
 
-  async handle(c: AppContext) {
+	async handle(c: AppContext) {
     try {
       // 認証
       const authHeader = c.req.header("Authorization");
@@ -84,5 +84,5 @@ export class UrlList extends OpenAPIRoute {
         500
       );
     }
-  }
+	}
 }

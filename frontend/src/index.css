@@ -25,11 +25,31 @@ body {
   .mobile-table {
     display: block !important;
   }
+  
+  /* モバイルテーブルでは横スクロール無効 */
+  .mobile-table .ant-table-wrapper {
+    overflow-x: visible !important;
+  }
+  
+  .mobile-table .ant-table {
+    min-width: auto !important;
+  }
 }
 
 /* テーブル横スクロール対応 */
 .ant-table-wrapper {
   overflow-x: auto;
+}
+
+.ant-table {
+  min-width: 800px; /* 最小幅を確保 */
+}
+
+/* デスクトップでのテーブル最適化 */
+@media (min-width: 992px) {
+  .ant-table {
+    min-width: auto;
+  }
 }
 
 /* モバイルでのボタン調整 */
@@ -40,4 +60,13 @@ body {
   .ant-btn-sm {
     padding: 2px 6px;
   }
+}
+
+/* 全体的なレスポンシブ対応 */
+* {
+  box-sizing: border-box;
+}
+
+.ant-table-cell {
+  padding: 8px 12px !important;
 } 

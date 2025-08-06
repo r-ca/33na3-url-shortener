@@ -135,7 +135,7 @@ export function Dashboard({ user }: DashboardProps) {
       title: 'スラグ',
       dataIndex: 'slug',
       key: 'slug',
-      width: 120,
+      width: 150,
       render: (slug: string) => (
         <Text code>{slug}</Text>
       ),
@@ -144,18 +144,36 @@ export function Dashboard({ user }: DashboardProps) {
       title: '短縮URL',
       dataIndex: 'shortUrl',
       key: 'shortUrl',
+      width: 300,
       render: (shortUrl: string) => (
-        <Space>
-          <a href={shortUrl} target="_blank" rel="noopener noreferrer">
-            <LinkOutlined /> {shortUrl}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <a 
+            href={shortUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '4px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              flex: 1
+            }}
+          >
+            <LinkOutlined />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {shortUrl}
+            </span>
           </a>
           <Button 
             type="text" 
             size="small" 
             icon={<CopyOutlined />}
             onClick={() => copyToClipboard(shortUrl)}
+            style={{ flexShrink: 0 }}
           />
-        </Space>
+        </div>
       ),
     },
     {
@@ -164,7 +182,18 @@ export function Dashboard({ user }: DashboardProps) {
       key: 'originalUrl',
       ellipsis: true,
       render: (url: string) => (
-        <a href={url} target="_blank" rel="noopener noreferrer" title={url}>
+        <a 
+          href={url} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          title={url}
+          style={{
+            display: 'block',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+        >
           {url}
         </a>
       ),
@@ -173,7 +202,7 @@ export function Dashboard({ user }: DashboardProps) {
       title: 'アクセス数',
       dataIndex: 'accessCount',
       key: 'accessCount',
-      width: 80,
+      width: 100,
       align: 'center',
       render: (count: number) => (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
@@ -186,14 +215,14 @@ export function Dashboard({ user }: DashboardProps) {
       title: '作成日',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 100,
+      width: 110,
       align: 'center',
       render: (date: string) => new Date(date).toLocaleDateString('ja-JP'),
     },
     {
       title: '操作',
       key: 'actions',
-      width: 80,
+      width: 100,
       align: 'center',
       render: (_, record) => (
         <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
@@ -294,7 +323,12 @@ export function Dashboard({ user }: DashboardProps) {
   const totalAccess = urls.reduce((sum, url) => sum + url.accessCount, 0);
 
   return (
-    <div style={{ padding: '16px' }}>
+    <div style={{ 
+      padding: '16px', 
+      maxWidth: '1200px', 
+      margin: '0 auto',
+      width: '100%'
+    }}>
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -347,6 +381,7 @@ export function Dashboard({ user }: DashboardProps) {
           dataSource={urls}
           rowKey="slug"
           loading={loading}
+          scroll={{ x: 800 }}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
@@ -362,6 +397,7 @@ export function Dashboard({ user }: DashboardProps) {
           dataSource={urls}
           rowKey="slug"
           loading={loading}
+
           pagination={{
             pageSize: 10,
             showTotal: (total) => `全 ${total} 件`,

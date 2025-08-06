@@ -41,7 +41,7 @@ export const UrlResponse = z.object({
   slug: Str({ example: "github" }),
   createdAt: DateTime(),
   accessCount: z.number(),
-  description: Str({ required: false }),
+	description: Str({ required: false }),
 });
 
 export type UrlResponse = z.infer<typeof UrlResponse>;

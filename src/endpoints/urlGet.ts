@@ -4,18 +4,18 @@ import { UrlResponse, ErrorResponse, type UrlRecord, type AppContext } from "../
 import { verifyGoogleIdToken, extractTokenFromHeader, generateKvKey } from "../utils/auth";
 
 export class UrlGet extends OpenAPIRoute {
-  schema = {
+	schema = {
     tags: ["URLs"],
     summary: "短縮URLを取得",
     description: "指定されたスラグの短縮URLを取得します。認証が必要です。",
     security: [{ BearerAuth: [] }],
-    request: {
-      params: z.object({
+		request: {
+			params: z.object({
         slug: z.string().min(1).describe("短縮URLのスラグ"),
-      }),
-    },
-    responses: {
-      "200": {
+			}),
+		},
+		responses: {
+			"200": {
         description: "短縮URL取得成功",
         content: {
           "application/json": {
@@ -33,24 +33,24 @@ export class UrlGet extends OpenAPIRoute {
       },
       "403": {
         description: "アクセス権限なし",
-        content: {
-          "application/json": {
+				content: {
+					"application/json": {
             schema: ErrorResponse,
-          },
-        },
-      },
-      "404": {
+					},
+				},
+			},
+			"404": {
         description: "URLが見つからない",
-        content: {
-          "application/json": {
+				content: {
+					"application/json": {
             schema: ErrorResponse,
-          },
-        },
-      },
-    },
-  };
+					},
+				},
+			},
+		},
+	};
 
-  async handle(c: AppContext) {
+	async handle(c: AppContext) {
     try {
       // 認証
       const authHeader = c.req.header("Authorization");
@@ -58,7 +58,7 @@ export class UrlGet extends OpenAPIRoute {
       const user = await verifyGoogleIdToken(idToken, c.env.GOOGLE_CLIENT_ID);
 
       // パラメータ取得
-      const data = await this.getValidatedData<typeof this.schema>();
+		const data = await this.getValidatedData<typeof this.schema>();
       const { slug } = data.params;
 
       // URLレコード取得
@@ -109,5 +109,5 @@ export class UrlGet extends OpenAPIRoute {
         500
       );
     }
-  }
+	}
 }
