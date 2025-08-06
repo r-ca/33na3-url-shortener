@@ -47,6 +47,7 @@ export function Dashboard({ user }: DashboardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUrl, setEditingUrl] = useState<UrlRecord | null>(null);
   const [detailUrl, setDetailUrl] = useState<UrlRecord | null>(null);
+  const [tableKey, setTableKey] = useState(0); // テーブル再レンダリング用
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -58,6 +59,8 @@ export function Dashboard({ user }: DashboardProps) {
     try {
       const response = await api.getUrls();
       setUrls(response.urls);
+      // テーブルの強制再レンダリング
+      setTableKey(prev => prev + 1);
     } catch (error) {
       if (error instanceof ApiError) {
         message.error(error.message);
@@ -74,6 +77,8 @@ export function Dashboard({ user }: DashboardProps) {
       const newUrl = await api.createUrl(values);
       // 状態を確実に更新
       setUrls(prevUrls => [newUrl, ...prevUrls]);
+      // テーブルの強制再レンダリング
+      setTableKey(prev => prev + 1);
       setIsModalOpen(false);
       form.resetFields();
       message.success('短縮URLを作成しました');
@@ -93,6 +98,8 @@ export function Dashboard({ user }: DashboardProps) {
       const updatedUrl = await api.updateUrl(editingUrl.slug, values);
       // 状態を確実に更新
       setUrls(prevUrls => prevUrls.map(url => url.slug === editingUrl.slug ? updatedUrl : url));
+      // テーブルの強制再レンダリング
+      setTableKey(prev => prev + 1);
       setEditingUrl(null);
       form.resetFields();
       message.success('短縮URLを更新しました');
@@ -118,6 +125,8 @@ export function Dashboard({ user }: DashboardProps) {
       await api.deleteUrl(slug);
       // 状態を確実に更新
       setUrls(prevUrls => prevUrls.filter(url => url.slug !== slug));
+      // テーブルの強制再レンダリング
+      setTableKey(prev => prev + 1);
       // 詳細モーダルが開いている場合は閉じる
       if (detailUrl?.slug === slug) {
         setDetailUrl(null);
@@ -397,6 +406,7 @@ export function Dashboard({ user }: DashboardProps) {
       </div>
       <div className="desktop-table" style={{ display: 'none' }}>
         <Table
+          key={tableKey}
           columns={desktopColumns}
           dataSource={urls}
           rowKey="slug"
@@ -413,11 +423,11 @@ export function Dashboard({ user }: DashboardProps) {
       
       <div className="mobile-table" style={{ display: 'block' }}>
         <Table
+          key={tableKey}
           columns={mobileColumns}
           dataSource={urls}
           rowKey="slug"
           loading={loading}
-
           pagination={{
             pageSize: 10,
             showTotal: (total) => `全 ${total} 件`,
