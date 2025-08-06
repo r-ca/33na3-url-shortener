@@ -5,6 +5,7 @@ import { UrlCreate } from "./endpoints/urlCreate";
 import { UrlDelete } from "./endpoints/urlDelete";
 import { UrlGet } from "./endpoints/urlGet";
 import { UrlList } from "./endpoints/urlList";
+import { UrlUpdate } from "./endpoints/urlUpdate";
 import { generateKvKey } from "./utils/auth";
 import { type UrlRecord } from "./types";
 
@@ -32,6 +33,7 @@ const openapi = fromHono(app, {
 openapi.get("/api/urls", UrlList);
 openapi.post("/api/urls", UrlCreate);
 openapi.get("/api/urls/:slug", UrlGet);
+openapi.put("/api/urls/:slug", UrlUpdate);
 openapi.delete("/api/urls/:slug", UrlDelete);
 
 // 短縮URL リダイレクト処理

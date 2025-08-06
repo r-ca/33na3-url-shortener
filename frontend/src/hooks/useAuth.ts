@@ -60,16 +60,26 @@ export function useAuth() {
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const padded = base64.padEnd((base64.length + 3) & ~3, '=');
       
-      const payload = JSON.parse(atob(padded));
+      // UTF-8対応のBase64デコード
+      const binaryString = atob(padded);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const utf8String = new TextDecoder('utf-8').decode(bytes);
+      const payload = JSON.parse(utf8String);
       
       // 必要なフィールドの検証
-      if (!payload.email || !payload.name) {
-        throw new Error('Required user data missing from token');
+      if (!payload.email) {
+        throw new Error('Email missing from token');
       }
+      
+      // 名前の処理（UTF-8デコード後なので文字化けは解消されているはず）
+      const displayName = payload.name || payload.email.split('@')[0];
       
       const userData: User = {
         email: payload.email,
-        name: payload.name || payload.email.split('@')[0], // 名前がない場合は学籍番号を使用
+        name: displayName,
         picture: payload.picture || '',
         studentId: payload.email.split('@')[0], // メールアドレスから学籍番号を抽出
       };

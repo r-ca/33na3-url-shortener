@@ -24,12 +24,14 @@ import {
   BarChartOutlined,
   UserOutlined,
   LogoutOutlined,
-  EditOutlined
+  EditOutlined,
+  ReloadOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { User, UrlRecord, CreateUrlRequest } from '../types';
 import { api, ApiError } from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
+import { generateSimpleSlug } from '../utils/slugGenerator';
 
 const { Text, Title } = Typography;
 
@@ -105,6 +107,11 @@ export function Dashboard({ user }: DashboardProps) {
       originalUrl: url.originalUrl,
       description: url.description,
     });
+  };
+
+  const generateSlug = () => {
+    const randomSlug = generateSimpleSlug(6);
+    form.setFieldValue('slug', randomSlug);
   };
 
   const handleDeleteUrl = async (slug: string) => {
@@ -354,6 +361,18 @@ export function Dashboard({ user }: DashboardProps) {
               <Input 
                 placeholder="my-link" 
                 addonBefore={`url.33na3.work/${user.studentId}/`}
+                addonAfter={
+                  <Button 
+                    type="text" 
+                    size="small" 
+                    icon={<ReloadOutlined />}
+                    onClick={() => {
+                      const randomSlug = generateSimpleSlug(6);
+                      form.setFieldValue('slug', randomSlug);
+                    }}
+                    title="ランダム生成"
+                  />
+                }
               />
             </Form.Item>
           )}
