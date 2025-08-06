@@ -258,7 +258,6 @@ export function Dashboard({ user }: DashboardProps) {
 
   return (
     <div>
-      {/* ヘッダー */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -280,7 +279,6 @@ export function Dashboard({ user }: DashboardProps) {
         </Dropdown>
       </div>
 
-      {/* 統計カード */}
       <Row gutter={16} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12}>
           <Card>
@@ -294,7 +292,6 @@ export function Dashboard({ user }: DashboardProps) {
         </Col>
       </Row>
 
-      {/* アクションバー */}
       <div style={{ marginBottom: 16 }}>
         <Button 
           type="primary" 
@@ -304,8 +301,6 @@ export function Dashboard({ user }: DashboardProps) {
           新しい短縮URLを作成
         </Button>
       </div>
-
-      {/* URLテーブル */}
       <Table
         columns={columns}
         dataSource={urls}
@@ -319,7 +314,6 @@ export function Dashboard({ user }: DashboardProps) {
         }}
       />
 
-      {/* 作成・編集モーダル */}
       <Modal
         title={editingUrl ? "短縮URLを編集" : "新しい短縮URLを作成"}
         open={isModalOpen || !!editingUrl}

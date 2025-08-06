@@ -19,7 +19,6 @@ export function LoginPage() {
       }
     };
 
-    // Google SDKの読み込み待ち
     if (window.google) {
       initializeGoogleButton();
     } else {
@@ -30,7 +29,6 @@ export function LoginPage() {
         }
       }, 100);
       
-      // 10秒でタイムアウト
       setTimeout(() => clearInterval(checkGoogle), 10000);
     }
   }, []);
