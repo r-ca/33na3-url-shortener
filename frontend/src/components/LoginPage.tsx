@@ -51,7 +51,7 @@ export function LoginPage() {
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div>
             <Title level={2} style={{ marginBottom: '8px' }}>
-              🔗 33na3 URL Shortener
+              さざなみ短縮URL
             </Title>
             <Text type="secondary">
               学内アカウントでログインしてください
@@ -70,7 +70,7 @@ export function LoginPage() {
           />
           
           <Text type="secondary" style={{ fontSize: '12px' }}>
-            学内ドメインのアカウントのみ利用可能
+            学校ドメインのアカウントのみ利用可能
           </Text>
         </Space>
       </Card>
