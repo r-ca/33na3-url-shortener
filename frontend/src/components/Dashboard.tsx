@@ -49,6 +49,8 @@ export function Dashboard({ user }: DashboardProps) {
   const [detailUrl, setDetailUrl] = useState<UrlRecord | null>(null);
   const [tableKey, setTableKey] = useState(0);
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -73,6 +75,9 @@ export function Dashboard({ user }: DashboardProps) {
   };
 
   const handleCreateUrl = async (values: CreateUrlRequest) => {
+    if (isCreating) return;
+    
+    setIsCreating(true);
     try {
       const newUrl = await api.createUrl(values);
       setUrls(prevUrls => [newUrl, ...prevUrls]);
@@ -86,12 +91,15 @@ export function Dashboard({ user }: DashboardProps) {
       } else {
         message.error('短縮URLの作成に失敗しました');
       }
+    } finally {
+      setIsCreating(false);
     }
   };
 
   const handleUpdateUrl = async (values: { originalUrl: string; description?: string }) => {
-    if (!editingUrl) return;
+    if (!editingUrl || isUpdating) return;
     
+    setIsUpdating(true);
     try {
       const updatedUrl = await api.updateUrl(editingUrl.slug, values);
       setUrls(prevUrls => prevUrls.map(url => url.slug === editingUrl.slug ? updatedUrl : url));
@@ -105,6 +113,8 @@ export function Dashboard({ user }: DashboardProps) {
       } else {
         message.error('短縮URLの更新に失敗しました');
       }
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -206,7 +216,14 @@ export function Dashboard({ user }: DashboardProps) {
             size="small" 
             icon={<CopyOutlined />}
             onClick={() => copyToClipboard(shortUrl)}
-            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ 
+              flexShrink: 0, 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              width: '24px',
+              height: '24px'
+            }}
           />
         </div>
       ),
@@ -267,7 +284,13 @@ export function Dashboard({ user }: DashboardProps) {
             icon={<EditOutlined />}
             onClick={() => openEditModal(record)}
             title="編集"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              width: '24px',
+              height: '24px'
+            }}
           />
           <Popconfirm
             title="この短縮URLを削除しますか？"
@@ -282,7 +305,13 @@ export function Dashboard({ user }: DashboardProps) {
               icon={<DeleteOutlined />}
               title="削除"
               loading={deletingSlug === record.slug}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                width: '24px',
+                height: '24px'
+              }}
             />
           </Popconfirm>
         </div>
@@ -304,14 +333,26 @@ export function Dashboard({ user }: DashboardProps) {
                 size="small" 
                 icon={<EyeOutlined />}
                 onClick={() => setDetailUrl(record)}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  width: '24px',
+                  height: '24px'
+                }}
               />
               <Button 
                 type="text" 
                 size="small" 
                 icon={<CopyOutlined />}
                 onClick={() => copyToClipboard(record.shortUrl)}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  width: '24px',
+                  height: '24px'
+                }}
               />
             </div>
           </div>
@@ -411,7 +452,12 @@ export function Dashboard({ user }: DashboardProps) {
             icon={<ReloadOutlined />}
             onClick={loadUrls}
             loading={loading}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              gap: '6px'
+            }}
           >
             更新
           </Button>
@@ -419,7 +465,12 @@ export function Dashboard({ user }: DashboardProps) {
             type="primary" 
             icon={<PlusOutlined />}
             onClick={() => setIsModalOpen(true)}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              gap: '6px'
+            }}
           >
             新規作成
           </Button>
@@ -514,7 +565,13 @@ export function Dashboard({ user }: DashboardProps) {
                       form.setFieldValue('slug', randomSlug);
                     }}
                     title="ランダム生成"
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      width: '24px',
+                      height: '24px'
+                    }}
                   />
                 }
               />
@@ -538,19 +595,26 @@ export function Dashboard({ user }: DashboardProps) {
             <Input.TextArea rows={3} placeholder="この短縮URLの説明" />
           </Form.Item>
 
-          <Form.Item>
+                    <Form.Item>
             <Space>
-              <Button type="primary" htmlType="submit">
+              <Button 
+                type="primary" 
+                htmlType="submit"
+                loading={editingUrl ? isUpdating : isCreating}
+              >
                 {editingUrl ? '更新' : '作成'}
               </Button>
-              <Button onClick={() => {
-                setIsModalOpen(false);
-                setEditingUrl(null);
-                form.resetFields();
-              }}>
+              <Button 
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setEditingUrl(null);
+                  form.resetFields();
+                }}
+                disabled={editingUrl ? isUpdating : isCreating}
+              >
                 キャンセル
               </Button>
-                        </Space>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>
@@ -607,7 +671,13 @@ export function Dashboard({ user }: DashboardProps) {
                     size="small" 
                     icon={<CopyOutlined />}
                     onClick={() => copyToClipboard(detailUrl.shortUrl)}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      width: '24px',
+                      height: '24px'
+                    }}
                   />
                 </div>
               </div>
