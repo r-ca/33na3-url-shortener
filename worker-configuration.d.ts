@@ -4,7 +4,8 @@
 declare namespace Cloudflare {
 	interface Env {
 		PRIMARY_KV: KVNamespace;
-		GOOGLE_CLIENT_ID: "todo";
+		GOOGLE_CLIENT_ID: string;
+		ASSETS: Fetcher;
 	}
 }
 interface Env extends Cloudflare.Env {}
