@@ -72,7 +72,8 @@ export function Dashboard({ user }: DashboardProps) {
   const handleCreateUrl = async (values: CreateUrlRequest) => {
     try {
       const newUrl = await api.createUrl(values);
-      setUrls([newUrl, ...urls]);
+      // 状態を確実に更新
+      setUrls(prevUrls => [newUrl, ...prevUrls]);
       setIsModalOpen(false);
       form.resetFields();
       message.success('短縮URLを作成しました');
@@ -90,7 +91,8 @@ export function Dashboard({ user }: DashboardProps) {
     
     try {
       const updatedUrl = await api.updateUrl(editingUrl.slug, values);
-      setUrls(urls.map(url => url.slug === editingUrl.slug ? updatedUrl : url));
+      // 状態を確実に更新
+      setUrls(prevUrls => prevUrls.map(url => url.slug === editingUrl.slug ? updatedUrl : url));
       setEditingUrl(null);
       form.resetFields();
       message.success('短縮URLを更新しました');
@@ -114,7 +116,17 @@ export function Dashboard({ user }: DashboardProps) {
   const handleDeleteUrl = async (slug: string) => {
     try {
       await api.deleteUrl(slug);
-      setUrls(urls.filter(url => url.slug !== slug));
+      // 状態を確実に更新
+      setUrls(prevUrls => prevUrls.filter(url => url.slug !== slug));
+      // 詳細モーダルが開いている場合は閉じる
+      if (detailUrl?.slug === slug) {
+        setDetailUrl(null);
+      }
+      // 編集モーダルが開いている場合は閉じる
+      if (editingUrl?.slug === slug) {
+        setEditingUrl(null);
+        form.resetFields();
+      }
       message.success('短縮URLを削除しました');
     } catch (error) {
       if (error instanceof ApiError) {
@@ -366,14 +378,22 @@ export function Dashboard({ user }: DashboardProps) {
       </Row>
 
       <div style={{ marginBottom: 16 }}>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={() => setIsModalOpen(true)}
-          block
-        >
-          新規作成
-        </Button>
+        <Space>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />}
+            onClick={() => setIsModalOpen(true)}
+          >
+            新規作成
+          </Button>
+          <Button 
+            icon={<ReloadOutlined />}
+            onClick={loadUrls}
+            loading={loading}
+          >
+            更新
+          </Button>
+        </Space>
       </div>
       <div className="desktop-table" style={{ display: 'none' }}>
         <Table
@@ -411,6 +431,12 @@ export function Dashboard({ user }: DashboardProps) {
         title={editingUrl ? "短縮URLを編集" : "新しい短縮URLを作成"}
         open={isModalOpen || !!editingUrl}
         onCancel={() => {
+          setIsModalOpen(false);
+          setEditingUrl(null);
+          form.resetFields();
+        }}
+        afterClose={() => {
+          // モーダルが完全に閉じられた後に状態をリセット
           setIsModalOpen(false);
           setEditingUrl(null);
           form.resetFields();
@@ -502,6 +528,10 @@ export function Dashboard({ user }: DashboardProps) {
           title="短縮URL詳細"
           open={!!detailUrl}
           onCancel={() => setDetailUrl(null)}
+          afterClose={() => {
+            // モーダルが完全に閉じられた後に状態をリセット
+            setDetailUrl(null);
+          }}
           footer={[
             <Button key="edit" type="primary" onClick={() => {
               setDetailUrl(null);
@@ -514,7 +544,6 @@ export function Dashboard({ user }: DashboardProps) {
               title="この短縮URLを削除しますか？"
               onConfirm={() => {
                 handleDeleteUrl(detailUrl!.slug);
-                setDetailUrl(null);
               }}
               okText="削除"
               cancelText="キャンセル"
