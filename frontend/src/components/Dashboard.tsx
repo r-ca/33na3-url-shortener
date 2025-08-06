@@ -64,10 +64,17 @@ export function Dashboard({ user }: DashboardProps) {
       setUrls(response.urls);
       setTableKey(prev => prev + 1);
     } catch (error) {
+      console.error('URL一覧の取得エラー:', error);
       if (error instanceof ApiError) {
-        message.error(error.message);
+        if (error.isAuthError()) {
+          message.error(`${error.getUserMessage()} ページを再読み込みしてください。`);
+          // 認証エラーの場合、自動でサインアウト処理を実行
+          setTimeout(() => signOut(), 2000);
+        } else {
+          message.error(error.getUserMessage());
+        }
       } else {
-        message.error('URL一覧の取得に失敗しました');
+        message.error('URL一覧の取得に失敗しました。ページを再読み込みしてください。');
       }
     } finally {
       setLoading(false);
@@ -86,10 +93,45 @@ export function Dashboard({ user }: DashboardProps) {
       form.resetFields();
       message.success('短縮URLを作成しました');
     } catch (error) {
+      console.error('URL作成エラー:', error);
       if (error instanceof ApiError) {
-        message.error(error.message);
+        const userMessage = error.getUserMessage();
+        
+        if (error.isConflictError()) {
+          // スラグ重複エラーの場合、フィールドエラーとして表示
+          form.setFields([
+            {
+              name: 'slug',
+              errors: [userMessage],
+            },
+          ]);
+          message.error(userMessage);
+        } else if (error.isValidationError()) {
+          // バリデーションエラーの場合、該当フィールドにエラーを設定
+          if (error.errorResponse.error === 'INVALID_URL') {
+            form.setFields([
+              {
+                name: 'originalUrl',
+                errors: [userMessage],
+              },
+            ]);
+          } else if (error.errorResponse.error === 'INVALID_SLUG') {
+            form.setFields([
+              {
+                name: 'slug',
+                errors: [userMessage],
+              },
+            ]);
+          }
+          message.error(userMessage);
+        } else if (error.isAuthError()) {
+          message.error(`${userMessage} ページを再読み込みしてください。`);
+          setTimeout(() => signOut(), 2000);
+        } else {
+          message.error(userMessage);
+        }
       } else {
-        message.error('短縮URLの作成に失敗しました');
+        message.error('短縮URLの作成に失敗しました。再試行してください。');
       }
     } finally {
       setIsCreating(false);
@@ -108,10 +150,35 @@ export function Dashboard({ user }: DashboardProps) {
       form.resetFields();
       message.success('短縮URLを更新しました');
     } catch (error) {
+      console.error('URL更新エラー:', error);
       if (error instanceof ApiError) {
-        message.error(error.message);
+        const userMessage = error.getUserMessage();
+        
+        if (error.isValidationError()) {
+          // バリデーションエラーの場合、該当フィールドにエラーを設定
+          if (error.errorResponse.error === 'INVALID_URL') {
+            form.setFields([
+              {
+                name: 'originalUrl',
+                errors: [userMessage],
+              },
+            ]);
+          }
+          message.error(userMessage);
+        } else if (error.isNotFoundError()) {
+          message.error(userMessage);
+          // URLが見つからない場合、モーダルを閉じてリストを更新
+          setEditingUrl(null);
+          form.resetFields();
+          loadUrls();
+        } else if (error.isAuthError()) {
+          message.error(`${userMessage} ページを再読み込みしてください。`);
+          setTimeout(() => signOut(), 2000);
+        } else {
+          message.error(userMessage);
+        }
       } else {
-        message.error('短縮URLの更新に失敗しました');
+        message.error('短縮URLの更新に失敗しました。再試行してください。');
       }
     } finally {
       setIsUpdating(false);
@@ -160,10 +227,22 @@ export function Dashboard({ user }: DashboardProps) {
         console.warn('削除後の同期に失敗しましたが、削除は成功しています:', syncError);
       }
     } catch (error) {
+      console.error('URL削除エラー:', error);
       if (error instanceof ApiError) {
-        message.error(error.message);
+        const userMessage = error.getUserMessage();
+        
+        if (error.isNotFoundError()) {
+          // URLが見つからない場合、リストを更新して表示を同期
+          message.warning('このURLは既に削除されています');
+          loadUrls();
+        } else if (error.isAuthError()) {
+          message.error(`${userMessage} ページを再読み込みしてください。`);
+          setTimeout(() => signOut(), 2000);
+        } else {
+          message.error(userMessage);
+        }
       } else {
-        message.error('短縮URLの削除に失敗しました');
+        message.error('短縮URLの削除に失敗しました。再試行してください。');
       }
     } finally {
       setDeletingSlug(null);
@@ -535,6 +614,17 @@ export function Dashboard({ user }: DashboardProps) {
             rules={[
               { required: true, message: 'URLを入力してください' },
               { type: 'url', message: '有効なURLを入力してください' },
+              {
+                validator: (_, value) => {
+                  if (!value) return Promise.resolve();
+                  try {
+                    new URL(value);
+                    return Promise.resolve();
+                  } catch {
+                    return Promise.reject(new Error('有効なURLを入力してください（例: https://example.com）'));
+                  }
+                },
+              },
             ]}
           >
             <Input placeholder="https://example.com" />
@@ -549,6 +639,11 @@ export function Dashboard({ user }: DashboardProps) {
                 { 
                   pattern: /^[a-zA-Z0-9_-]+$/, 
                   message: '英数字、ハイフン、アンダースコアのみ使用可能です' 
+                },
+                {
+                  min: 1,
+                  max: 50,
+                  message: 'スラグは1文字以上50文字以内で入力してください',
                 },
               ]}
             >
