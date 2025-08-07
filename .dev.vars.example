@@ -1,2 +1,9 @@
 # Google OAuth Client ID
-GOOGLE_CLIENT_ID=your_google_client_id_here 
+GOOGLE_CLIENT_ID=your_google_client_id_here
+
+# Cloudflare KV Namespace ID
+KV_NAMESPACE_ID=your_kv_namespace_id_here
+
+# Domain configuration
+DOMAIN_PATTERN=url.yourdomain.com/*
+ZONE_NAME=yourdomain.com 

@@ -32,17 +32,31 @@ npm install
 cd frontend && npm install && cd ..
 ```
 
-3. Set up Google OAuth Client ID:
+3. Set up environment variables:
 ```bash
 cp .dev.vars.example .dev.vars
 ```
 
-Edit `.dev.vars` and add your Google OAuth Client ID:
+Edit `.dev.vars` and add your actual values:
 ```bash
+# Google OAuth Client ID
 GOOGLE_CLIENT_ID=your_actual_google_client_id
+
+# Cloudflare KV Namespace ID
+KV_NAMESPACE_ID=your_actual_kv_namespace_id
+
+# Domain configuration
+DOMAIN_PATTERN=url.yourdomain.com/*
+ZONE_NAME=yourdomain.com
 ```
 
-4. Deploy to Cloudflare Workers:
+4. Create a Cloudflare KV namespace (if you don't have one):
+```bash
+wrangler kv:namespace create PRIMARY_KV
+```
+Copy the returned namespace ID to your `.dev.vars` file.
+
+5. Deploy to Cloudflare Workers:
 ```bash
 npm run deploy
 ```
@@ -63,4 +77,4 @@ npm run dev:frontend
 
 - Never commit `.dev.vars` file to version control
 - Keep your Google OAuth credentials secure
-- The KV namespace ID and domain configuration are safe to be public
+- The configuration uses environment variables for all environment-specific values
