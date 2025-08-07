@@ -1,25 +1,66 @@
-# Cloudflare Workers OpenAPI 3.1
+# 33na3 URL Shortener
 
-This is a Cloudflare Worker with OpenAPI 3.1 using [chanfana](https://github.com/cloudflare/chanfana) and [Hono](https://github.com/honojs/hono).
+A URL shortening service built with Cloudflare Workers and React.
 
-This is an example project made to be used as a quick start into building OpenAPI compliant Workers that generates the
-`openapi.json` schema automatically from code and validates the incoming request to the defined parameters or request body.
+## Features
 
-## Get started
+- URL shortening with custom slugs
+- Google OAuth authentication
+- User-specific URL management
+- Modern React frontend with Ant Design
 
-1. Sign up for [Cloudflare Workers](https://workers.dev). The free tier is more than enough for most use cases.
-2. Clone this project and install dependencies with `npm install`
-3. Run `wrangler login` to login to your Cloudflare account in wrangler
-4. Run `wrangler deploy` to publish the API to Cloudflare Workers
+## Setup
 
-## Project structure
+### Prerequisites
 
-1. Your main router is defined in `src/index.ts`.
-2. Each endpoint has its own file in `src/endpoints/`.
-3. For more information read the [chanfana documentation](https://chanfana.pages.dev/) and [Hono documentation](https://hono.dev/docs).
+- Node.js (v18 or higher)
+- npm or yarn
+- Cloudflare account
+- Google OAuth credentials
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd 33na3-url-shortener
+```
+
+2. Install dependencies:
+```bash
+npm install
+cd frontend && npm install && cd ..
+```
+
+3. Set up Google OAuth Client ID:
+```bash
+cp .dev.vars.example .dev.vars
+```
+
+Edit `.dev.vars` and add your Google OAuth Client ID:
+```bash
+GOOGLE_CLIENT_ID=your_actual_google_client_id
+```
+
+4. Deploy to Cloudflare Workers:
+```bash
+npm run deploy
+```
 
 ## Development
 
-1. Run `wrangler dev` to start a local instance of the API.
-2. Open `http://localhost:8787/` in your browser to see the Swagger interface where you can try the endpoints.
-3. Changes made in the `src/` folder will automatically trigger the server to reload, you only need to refresh the Swagger interface.
+Start the development server:
+```bash
+npm run dev
+```
+
+Start the frontend development server:
+```bash
+npm run dev:frontend
+```
+
+## Security Notes
+
+- Never commit `.dev.vars` file to version control
+- Keep your Google OAuth credentials secure
+- The KV namespace ID and domain configuration are safe to be public
