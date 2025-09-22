@@ -53,6 +53,8 @@ export function Dashboard({ user }: DashboardProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [form] = Form.useForm();
 
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+
   useEffect(() => {
     loadUrls();
   }, []);
@@ -601,7 +603,7 @@ export function Dashboard({ user }: DashboardProps) {
             >
               <Input 
                 placeholder="my-link" 
-                addonBefore={`url.33na3.work/${user.studentId}/`}
+                addonBefore={`${baseUrl}/${user.studentId}/`}
                 addonAfter={
                   <Button 
                     type="text" 
@@ -623,7 +625,7 @@ export function Dashboard({ user }: DashboardProps) {
               <Input 
                 value={editingUrl.slug}
                 disabled
-                addonBefore={`url.33na3.work/${user.studentId}/`}
+                addonBefore={`${baseUrl}/${user.studentId}/`}
               />
             </Form.Item>
           )}
