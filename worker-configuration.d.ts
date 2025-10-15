@@ -6,6 +6,7 @@ declare namespace Cloudflare {
 		PRIMARY_KV: KVNamespace;
 		GOOGLE_CLIENT_ID: string;
 		ASSETS: Fetcher;
+		CORS_ALLOWED_ORIGINS?: string;
 	}
 }
 interface Env extends Cloudflare.Env {}

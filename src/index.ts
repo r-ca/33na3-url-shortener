@@ -9,18 +9,46 @@ import { UrlUpdate } from "./endpoints/urlUpdate";
 import { generateKvKey } from "./utils/auth";
 import { type UrlRecord } from "./types";
 
+const DEFAULT_ALLOWED_ORIGINS = [
+  "https://url.33na3.work",
+  "http://localhost:3000",
+  "http://localhost:5173",
+];
+
+const parseAllowedOrigins = (rawOrigins: string | undefined): string[] => {
+  if (!rawOrigins || rawOrigins.includes("${")) {
+    return [];
+  }
+
+  return rawOrigins
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+};
+
 const app = new Hono<{ Bindings: Env }>();
 
-app.use("*", cors({
-  origin: [
-    "https://url.33na3.work", 
-    "http://localhost:3000", 
-    "http://localhost:5173"
-  ],
-  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-}));
+app.use("*", async (c, next) => {
+  const requestOrigin = new URL(c.req.url).origin;
+  const allowedOriginSet = new Set([
+    ...DEFAULT_ALLOWED_ORIGINS,
+    ...parseAllowedOrigins(c.env.CORS_ALLOWED_ORIGINS),
+    requestOrigin,
+  ]);
+  const allowAllOrigins = allowedOriginSet.has("*");
+
+  const corsMiddleware = cors({
+    origin: (origin) => {
+      if (!origin) return true; // same-origin or non-browser requests
+      return allowAllOrigins || allowedOriginSet.has(origin);
+    },
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  });
+
+  return corsMiddleware(c, next);
+});
 
 const openapi = fromHono(app, {
   docs_url: "/docs",

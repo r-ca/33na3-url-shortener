@@ -48,6 +48,9 @@ KV_NAMESPACE_ID=your_actual_kv_namespace_id
 # Domain configuration
 DOMAIN_PATTERN=url.yourdomain.com/*
 ZONE_NAME=yourdomain.com
+
+# Additional allowed origins for CORS (comma separated)
+CORS_ALLOWED_ORIGINS=https://url.yourdomain.com,https://alt.yourdomain.com
 ```
 
 4. Create a Cloudflare KV namespace (if you don't have one):
@@ -60,6 +63,14 @@ Copy the returned namespace ID to your `.dev.vars` file.
 ```bash
 npm run deploy
 ```
+
+## Multiple Domain Support
+
+To serve the same Worker under additional domains:
+- Add a new entry to the `routes` array in `wrangler.jsonc` (and the matching `env.production.routes` block) for each domain/zone pair you want to attach.
+- Include every frontend origin in the `CORS_ALLOWED_ORIGINS` variable (comma separated). Any domain that serves the Worker directly is automatically allowed, so list only external origins that must call the API.
+- Update DNS so the new hostname is proxied (orange-cloud) to Cloudflare and points to the same zone.
+- Redeploy the Worker after making these changes.
 
 ## Development
 

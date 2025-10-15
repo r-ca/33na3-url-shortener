@@ -18,7 +18,8 @@
 		}
 	],
 	"vars": {
-		"GOOGLE_CLIENT_ID": "${GOOGLE_CLIENT_ID}"
+		"GOOGLE_CLIENT_ID": "${GOOGLE_CLIENT_ID}",
+		"CORS_ALLOWED_ORIGINS": "${CORS_ALLOWED_ORIGINS}"
 	},
 	"assets": { 
 		"directory": "./frontend/dist/", 

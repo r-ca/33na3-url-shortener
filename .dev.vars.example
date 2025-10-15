@@ -8,6 +8,8 @@ KV_NAMESPACE_ID=your_kv_namespace_id_here
 DOMAIN_PATTERN=url.yourdomain.com/*
 ZONE_NAME=yourdomain.com 
 
-# Domain configuration (for frontend)
-VITE_BASE_URL='https://exmaple.com'
+# Additional domain origins (comma separated, optional)
+CORS_ALLOWED_ORIGINS=https://url.yourdomain.com,https://alt.yourdomain.com
 
+# Domain configuration (for frontend)
+VITE_BASE_URL='https://example.com'
